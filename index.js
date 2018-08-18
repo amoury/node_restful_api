@@ -9,6 +9,10 @@ const url = require("url");
 const StringDecoder = require("string_decoder").StringDecoder;
 const config = require("./config");
 const fs = require('fs');
+const handlers = require('./lib/handlers');
+const helpers = require('./lib/helpers');
+
+
 
 // Instantiate the HTTP server
 const httpServer = http.createServer((req, res) => {
@@ -63,28 +67,32 @@ const unifiedServer = (req, res) => {
   req.on("end", () => {
     buffer += decoder.end();
 
+    
     // choose the handler this request should go to
     const chosenHandler =
-      typeof router[trimmedPath] !== "undefined"
-        ? router[trimmedPath]
-        : handlers.notFound;
+    typeof router[trimmedPath] !== "undefined"
+    ? router[trimmedPath]
+    : handlers.notFound;
 
+    
     // Construct the data object to send to the hanlder
     const data = {
       trimmedPath: trimmedPath,
       queryStringObject: queryStringObject,
       method: method,
       headers: headers,
-      payload: buffer
+      payload: helpers.parseJsonToObject(buffer)
     };
-
+    
+    
     // Route the request to the handler specified in the router
     chosenHandler(data, (statusCode, payload) => {
       // Use the status code called back by the handler, or default
       statusCode = typeof statusCode == "number" ? statusCode : 200;
-      // Use the pyaload called back by handler
-      payload = typeof payload == "object" ? payload : {};
 
+      // Use the payload called back by handler
+      payload = typeof payload == "object" ? payload : {};
+      
       // Convert the payload to a string
       const payloadString = JSON.stringify(payload);
 
@@ -102,19 +110,8 @@ const unifiedServer = (req, res) => {
   });
 };
 
-// Define the handlers
-const handlers = {};
-
-handlers.ping = (data, callback) => {
-  callback(200);
-}
-
-// Not found handler
-handlers.notFound = (data, callback) => {
-  callback(404);
-};
-
 // Define a request router
 const router = {
-  'ping': handlers.ping
+  'ping': handlers.ping,
+  'users': handlers.users
 };
