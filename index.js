@@ -14,6 +14,7 @@ const helpers = require('./lib/helpers');
 
 
 
+
 // Instantiate the HTTP server
 const httpServer = http.createServer((req, res) => {
   unifiedServer(req, res);
@@ -113,5 +114,7 @@ const unifiedServer = (req, res) => {
 // Define a request router
 const router = {
   'ping': handlers.ping,
-  'users': handlers.users
+  'users': handlers.users,
+  'tokens': handlers.tokens
 };
+
